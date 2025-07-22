@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Fractal Language Learning System - Interactive Guide</title>
+    <title>3D Fractal Language Learning System - Triple Identity & Coordination as Sun</title>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -35,6 +35,29 @@
                 opacity: .5;
             }
         }
+        .sun-glow {
+            animation: sunGlow 3s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+        }
+        @keyframes sunGlow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(251, 191, 36, 0.9);
+            }
+        }
+        .orbit-animation {
+            animation: orbit 8s linear infinite;
+        }
+        @keyframes orbit {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
         .interactive-hint {
             position: relative;
         }
@@ -56,13 +79,68 @@
         .interactive-hint:hover::after {
             opacity: 1;
         }
+        .cube-container {
+            touch-action: none;
+            user-select: none;
+        }
+        .rotation-controls {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            grid-template-rows: 1fr auto 1fr;
+            gap: 4px;
+            width: 120px;
+            height: 120px;
+        }
+        .rotation-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 18px;
+        }
+        .rotation-btn:hover {
+            background: #2563eb;
+        }
+        .rotation-btn:active {
+            background: #1d4ed8;
+            transform: scale(0.95);
+        }
+        .triple-identity-showcase {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border: 3px solid #d97706;
+            animation: identityPulse 4s ease-in-out infinite;
+        }
+        @keyframes identityPulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+            }
+            33% {
+                transform: scale(1.05);
+                box-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
+            }
+            66% {
+                transform: scale(1.03);
+                box-shadow: 0 0 25px rgba(34, 197, 94, 0.5);
+            }
+        }
+        .sun-visualization {
+            position: relative;
+            background: radial-gradient(circle, #fbbf24, #f59e0b);
+            border: 4px solid #d97706;
+        }
     </style>
 </head>
 <body>
     <div id="root"></div>
     
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
 
         // Simple icon components
         const ChevronDown = () => <span className="lucide">▼</span>;
@@ -72,24 +150,32 @@
         const Mouse = () => <span className="lucide">🖱️</span>;
         const Hand = () => <span className="lucide">👆</span>;
         const Info = () => <span className="lucide">ℹ️</span>;
+        const Move3D = () => <span className="lucide">🎮</span>;
+        const Sun = () => <span className="lucide">☀️</span>;
+        const Orbit = () => <span className="lucide">🌍</span>;
 
-        const UserFriendlyCubicLanguageLearning = () => {
+        const TripleIdentityCubicLanguageLearning = () => {
           const [rotation, setRotation] = useState({ x: -15, y: 25 });
           const [activeLevel, setActiveLevel] = useState('L0');
           const [activeFace, setActiveFace] = useState('front');
-          const [isRotating, setIsRotating] = useState(true);
+          const [isAutoRotating, setIsAutoRotating] = useState(true); // Default to AUTO-ROTATING
           const [highlightedGrid, setHighlightedGrid] = useState(null);
           const [showDetailedView, setShowDetailedView] = useState(true);
           const [showInstructions, setShowInstructions] = useState(true);
+          const [isDragging, setIsDragging] = useState(false);
+          const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
+          const [showTripleIdentity, setShowTripleIdentity] = useState(true);
+          const [currentIdentityView, setCurrentIdentityView] = useState('coordinator');
+          const cubeRef = useRef(null);
 
           useEffect(() => {
-            if (isRotating) {
+            if (isAutoRotating) {
               const interval = setInterval(() => {
                 setRotation(prev => ({ x: prev.x, y: (prev.y + 1) % 360 }));
               }, 100);
               return () => clearInterval(interval);
             }
-          }, [isRotating]);
+          }, [isAutoRotating]);
 
           const levels = {
             'L-2': { size: '9×9', description: 'Macro Learning Ecosystem', color: 'bg-purple-100', cubes: 81, cubeColor: '#e879f9' },
@@ -126,6 +212,125 @@
             'Discourse', 'Gestural', 'Emotional'
           ];
 
+          // Manual rotation functions
+          const handleMouseDown = (e) => {
+            setIsDragging(true);
+            setIsAutoRotating(false);
+            setLastMousePos({ x: e.clientX, y: e.clientY });
+          };
+
+          const handleMouseMove = (e) => {
+            if (!isDragging) return;
+            
+            const deltaX = e.clientX - lastMousePos.x;
+            const deltaY = e.clientY - lastMousePos.y;
+            
+            setRotation(prev => ({
+              x: Math.max(-90, Math.min(90, prev.x - deltaY * 0.5)),
+              y: (prev.y + deltaX * 0.5) % 360
+            }));
+            
+            setLastMousePos({ x: e.clientX, y: e.clientY });
+          };
+
+          const handleMouseUp = () => {
+            setIsDragging(false);
+          };
+
+          // Touch events for mobile
+          const handleTouchStart = (e) => {
+            const touch = e.touches[0];
+            setIsDragging(true);
+            setIsAutoRotating(false);
+            setLastMousePos({ x: touch.clientX, y: touch.clientY });
+          };
+
+          const handleTouchMove = (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - lastMousePos.x;
+            const deltaY = touch.clientY - lastMousePos.y;
+            
+            setRotation(prev => ({
+              x: Math.max(-90, Math.min(90, prev.x - deltaY * 0.5)),
+              y: (prev.y + deltaX * 0.5) % 360
+            }));
+            
+            setLastMousePos({ x: touch.clientX, y: touch.clientY });
+          };
+
+          const handleTouchEnd = () => {
+            setIsDragging(false);
+          };
+
+          // Preset rotation buttons
+          const rotateToPredefinedView = (view) => {
+            setIsAutoRotating(false);
+            switch(view) {
+              case 'front':
+                setRotation({ x: 0, y: 0 });
+                setActiveFace('front');
+                break;
+              case 'back':
+                setRotation({ x: 0, y: 180 });
+                setActiveFace('back');
+                break;
+              case 'left':
+                setRotation({ x: 0, y: -90 });
+                setActiveFace('left');
+                break;
+              case 'right':
+                setRotation({ x: 0, y: 90 });
+                setActiveFace('right');
+                break;
+              case 'top':
+                setRotation({ x: -90, y: 0 });
+                setActiveFace('top');
+                break;
+              case 'bottom':
+                setRotation({ x: 90, y: 0 });
+                setActiveFace('bottom');
+                break;
+              default:
+                break;
+            }
+          };
+
+          // Manual rotation controls
+          const adjustRotation = (axis, delta) => {
+            setIsAutoRotating(false);
+            setRotation(prev => ({
+              ...prev,
+              [axis]: axis === 'x' 
+                ? Math.max(-90, Math.min(90, prev[axis] + delta))
+                : (prev[axis] + delta) % 360
+            }));
+          };
+
+          useEffect(() => {
+            const handleGlobalMouseMove = (e) => {
+              if (isDragging) {
+                handleMouseMove(e);
+              }
+            };
+
+            const handleGlobalMouseUp = () => {
+              if (isDragging) {
+                handleMouseUp();
+              }
+            };
+
+            document.addEventListener('mousemove', handleGlobalMouseMove);
+            document.addEventListener('mouseup', handleGlobalMouseUp);
+
+            return () => {
+              document.removeEventListener('mousemove', handleGlobalMouseMove);
+              document.removeEventListener('mouseup', handleGlobalMouseUp);
+            };
+          }, [isDragging, lastMousePos]);
+
           const renderCubeGrid = (size, faceKey) => {
             const isCenter = (i) => i === Math.floor((size * size) / 2);
             
@@ -135,7 +340,7 @@
                   {Array.from({ length: 9 }, (_, gridIndex) => (
                     <div 
                       key={gridIndex}
-                      className={`border rounded-sm transition-all ${gridIndex === 4 ? 'border-yellow-400 bg-yellow-200' : 'border-gray-400 bg-white'} ${
+                      className={`border rounded-sm transition-all ${gridIndex === 4 ? 'border-yellow-400 bg-yellow-200 sun-glow' : 'border-gray-400 bg-white'} ${
                         highlightedGrid === gridIndex ? 'ring-2 ring-blue-500 shadow-lg' : ''
                       }`}
                       onMouseEnter={() => setHighlightedGrid(gridIndex)}
@@ -147,13 +352,13 @@
                             key={cellIndex}
                             className={`rounded-sm flex items-center justify-center text-xs
                               ${cellIndex === 4 
-                                ? (gridIndex === 4 ? 'bg-yellow-300' : 'bg-blue-200')
+                                ? (gridIndex === 4 ? 'bg-yellow-300 sun-glow' : 'bg-blue-200')
                                 : 'bg-gray-100'
                               }`}
                           >
                             {cellIndex === 4 && (
                               <span className="text-[6px] font-bold text-center">
-                                {gridIndex === 4 ? '文化' : '智能'}
+                                {gridIndex === 4 ? '☀️' : '🌍'}
                               </span>
                             )}
                           </div>
@@ -170,10 +375,10 @@
                     <div
                       key={i}
                       className={`border rounded flex items-center justify-center text-xs font-bold
-                        ${isCenter(i) ? 'bg-yellow-300 border-yellow-500' : 'bg-white border-gray-300'}
+                        ${isCenter(i) ? 'bg-yellow-300 border-yellow-500 sun-glow' : 'bg-white border-gray-300'}
                       `}
                     >
-                      {isCenter(i) ? '文化智能' : i + 1}
+                      {isCenter(i) ? '☀️' : '🌍'}
                     </div>
                   ))}
                 </div>
@@ -181,8 +386,8 @@
             } else {
               return (
                 <div className="h-full w-full flex items-center justify-center p-4">
-                  <div className="w-full h-full bg-yellow-300 border-4 border-yellow-500 rounded-lg flex items-center justify-center font-bold text-lg">
-                    文化智能
+                  <div className="w-full h-full bg-yellow-300 border-4 border-yellow-500 rounded-lg flex items-center justify-center font-bold text-lg sun-glow">
+                    ☀️ 协调
                   </div>
                 </div>
               );
@@ -263,7 +468,7 @@
                         className={`
                           border-2 rounded p-1 cursor-pointer transition-all interactive-hint
                           ${gridIndex === 4 
-                            ? 'border-yellow-600 bg-yellow-200 shadow-lg' 
+                            ? 'border-yellow-600 bg-yellow-200 shadow-lg sun-glow' 
                             : 'border-gray-400 bg-white hover:bg-gray-50'
                           }
                           ${highlightedGrid === gridIndex ? 'ring-2 ring-blue-500' : ''}
@@ -278,14 +483,14 @@
                               className={`
                                 aspect-square border border-gray-300 rounded-sm flex items-center justify-center text-xs font-bold
                                 ${cellIndex === 4 
-                                  ? (gridIndex === 4 ? 'bg-yellow-400 border-yellow-700' : 'bg-blue-200 border-blue-500')
+                                  ? (gridIndex === 4 ? 'bg-yellow-400 border-yellow-700 sun-glow' : 'bg-blue-200 border-blue-500')
                                   : 'bg-gray-100'
                                 }
                               `}
                             >
                               {cellIndex === 4 ? (
                                 <span className="text-[6px] text-center leading-none">
-                                  {domains?.[gridIndex]?.slice(0, 6) || '文化'}
+                                  {gridIndex === 4 ? '☀️' : '🌍'}
                                 </span>
                               ) : (
                                 <span className="text-[4px]">
@@ -296,7 +501,7 @@
                           ))}
                         </div>
                         <div className="text-center text-[8px] font-bold mt-1 text-gray-700">
-                          {gridIndex === 4 ? 'SUN' : `P${gridIndex + 1}`}
+                          {gridIndex === 4 ? 'SUN ☀️' : `P${gridIndex + 1} 🌍`}
                         </div>
                       </div>
                     ))}
@@ -320,10 +525,10 @@
                         key={i}
                         className={`
                           aspect-square border-2 border-gray-400 rounded flex items-center justify-center text-sm font-bold
-                          ${i === 4 ? 'bg-yellow-300 border-yellow-600' : 'bg-white'}
+                          ${i === 4 ? 'bg-yellow-300 border-yellow-600 sun-glow' : 'bg-white'}
                         `}
                       >
-                        {competences?.[i]?.slice(0, 4)}
+                        {i === 4 ? '☀️' : '🌍'}
                       </div>
                     ))}
                   </div>
@@ -339,8 +544,8 @@
             return (
               <div className="relative">
                 <div className={`${color} border-4 border-gray-600 p-8 rounded-lg shadow-lg`}>
-                  <div className="aspect-square border-4 border-yellow-600 rounded-lg bg-yellow-300 flex items-center justify-center text-lg font-bold">
-                    文化智能
+                  <div className="aspect-square border-4 border-yellow-600 rounded-lg bg-yellow-300 flex items-center justify-center text-lg font-bold sun-glow">
+                    ☀️ 协调 ☀️
                   </div>
                 </div>
                 <div className={`absolute top-3 left-3 w-full h-full ${color} border-4 border-gray-600 rounded-lg opacity-40 -z-10`}></div>
@@ -360,24 +565,151 @@
             }
           };
 
+          const renderTripleIdentityShowcase = () => {
+            const identityExamples = {
+              coordinator: {
+                title: "As COORDINATOR (Sun ☀️)",
+                description: "Cultural Intelligence becomes the central organizing force",
+                visual: (
+                  <div className="relative w-32 h-32 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center text-lg font-bold sun-glow">
+                      ☀️
+                    </div>
+                    {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+                      <div
+                        key={i}
+                        className="absolute w-4 h-4 bg-blue-400 rounded-full flex items-center justify-center text-xs orbit-animation"
+                        style={{
+                          top: '50%',
+                          left: '50%',
+                          transformOrigin: '0 0',
+                          transform: `rotate(${i * 45}deg) translate(40px, -8px)`
+                        }}
+                      >
+                        🌍
+                      </div>
+                    ))}
+                  </div>
+                ),
+                example: "When you focus on Cultural Intelligence, it coordinates all other competences like vocabulary, grammar, listening for your goal."
+              },
+              supporter: {
+                title: "As SUPPORTER (Planet 🌍)",
+                description: "Cultural Intelligence supports a larger coordination goal",
+                visual: (
+                  <div className="relative w-32 h-32 bg-orange-100 rounded-full flex items-center justify-center">
+                    <div className="w-20 h-20 bg-orange-400 rounded-full flex items-center justify-center text-sm font-bold sun-glow">
+                      ACADEMIC SUCCESS
+                    </div>
+                    <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center text-xs orbit-animation">
+                      🌍
+                    </div>
+                    {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                      <div
+                        key={i}
+                        className="absolute w-4 h-4 bg-green-400 rounded-full"
+                        style={{
+                          top: '50%',
+                          left: '50%',
+                          transform: `rotate(${i * 51.4}deg) translate(35px, -8px)`
+                        }}
+                      >
+                      </div>
+                    ))}
+                  </div>
+                ),
+                example: "When you focus on Academic Success, Cultural Intelligence becomes one of many supporting competences."
+              },
+              system: {
+                title: "As DETAILED SYSTEM (Internal)",
+                description: "Cultural Intelligence expands into complex subsystems",
+                visual: (
+                  <div className="w-32 h-32 bg-purple-100 rounded border-2 border-purple-300">
+                    <div className="grid grid-cols-3 gap-1 p-2 h-full">
+                      {['VAL', 'HIE', 'REL', 'FACE', '☀️', 'TIME', 'COM', 'ETI', 'DEC'].map((item, i) => (
+                        <div
+                          key={i}
+                          className={`${i === 4 ? 'bg-yellow-400 sun-glow' : 'bg-purple-400'} rounded text-xs flex items-center justify-center text-white font-bold`}
+                        >
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ),
+                example: "When you look inside Cultural Intelligence, it contains value systems, hierarchy navigation, relationship networks, etc."
+              }
+            };
+
+            const current = identityExamples[currentIdentityView];
+
+            return (
+              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-xl border-2 border-yellow-300">
+                <h3 className="text-xl font-bold text-center mb-4 text-yellow-800 flex items-center justify-center gap-2">
+                  <Sun /> Triple Identity Demonstration
+                </h3>
+                
+                <div className="flex justify-center mb-4">
+                  <div className="flex bg-white rounded-lg p-1 border border-gray-300">
+                    {Object.keys(identityExamples).map((identity) => (
+                      <button
+                        key={identity}
+                        onClick={() => setCurrentIdentityView(identity)}
+                        className={`px-4 py-2 rounded transition-all ${
+                          currentIdentityView === identity 
+                            ? 'bg-yellow-400 text-black font-bold' 
+                            : 'text-gray-600 hover:text-gray-800'
+                        }`}
+                      >
+                        {identity.charAt(0).toUpperCase() + identity.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="flex flex-col items-center">
+                    <h4 className="font-bold text-lg mb-3 text-gray-800">{current.title}</h4>
+                    <div className="mb-4">{current.visual}</div>
+                    <p className="text-sm text-center text-gray-700 font-semibold">{current.description}</p>
+                  </div>
+                  
+                  <div className="flex flex-col justify-center">
+                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                      <h5 className="font-bold text-gray-800 mb-2">Example Scenario:</h5>
+                      <p className="text-sm text-gray-700">{current.example}</p>
+                    </div>
+                    
+                    <div className="mt-4 p-3 bg-yellow-100 rounded-lg">
+                      <p className="text-xs text-yellow-800 font-semibold">
+                        🔑 Key Insight: The SAME competence (Cultural Intelligence) has three completely different roles 
+                        depending on your focus. This isn't confusion—it's the mathematical structure of advanced language learning!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
           const renderFractalExplanation = () => {
             if (activeLevel === 'L-2' || activeLevel === 'L2') {
               return (
                 <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <h4 className="font-bold text-sm mb-2 flex items-center gap-2">
-                    <Mouse /> Fractal Sun/Planet Structure:
+                    <Mouse /> <Sun /> Fractal Sun/Planet Structure:
                   </h4>
                   <div className="text-sm text-gray-700">
-                    <p><strong>Central Sun (Yellow):</strong> {activeLevel === 'L-2' ? 'Cultural Intelligence learning domain' : 'Cultural Intelligence neural hub'}</p>
-                    <p><strong>8 Surrounding Planets:</strong> {activeLevel === 'L-2' ? 'Other learning domains that coordinate with Cultural Intelligence' : 'Neural patterns that integrate with Cultural Intelligence'}</p>
+                    <p><strong>Central Sun (☀️):</strong> {activeLevel === 'L-2' ? 'Cultural Intelligence learning domain' : 'Cultural Intelligence neural hub'}</p>
+                    <p><strong>8 Surrounding Planets (🌍):</strong> {activeLevel === 'L-2' ? 'Other learning domains that coordinate with Cultural Intelligence' : 'Neural patterns that integrate with Cultural Intelligence'}</p>
                     <p><strong>Each Planet is a 3×3 Grid:</strong> Contains its own sun/planet structure at smaller scale</p>
-                    <p className="mt-2 font-semibold text-blue-600">💡 Hover over different grids to explore the fractal relationships!</p>
+                    <p className="mt-2 font-semibold text-blue-600">💡 Notice the sun glow animation emphasizing the coordination center!</p>
                   </div>
                   {highlightedGrid !== null && (
                     <div className="mt-2 p-2 bg-white rounded border border-blue-300">
-                      <strong>🔍 Grid {highlightedGrid === 4 ? 'SUN' : `Planet ${highlightedGrid + 1}`}:</strong> {
-                        highlightedGrid === 4 ? 'Central Cultural Intelligence coordination hub' : 
-                        `${activeLevel === 'L-2' ? ecosystemDomains[highlightedGrid] : neuralPatterns[highlightedGrid]} coordination with Cultural Intelligence`
+                      <strong>🔍 Grid {highlightedGrid === 4 ? 'SUN ☀️' : `Planet ${highlightedGrid + 1} 🌍`}:</strong> {
+                        highlightedGrid === 4 ? 'Central Cultural Intelligence coordination hub with sun power!' : 
+                        `${activeLevel === 'L-2' ? ecosystemDomains[highlightedGrid] : neuralPatterns[highlightedGrid]} orbiting around Cultural Intelligence sun`
                       }
                     </div>
                   )}
@@ -395,7 +727,7 @@
                 <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl p-6 mb-8 shadow-xl">
                   <div className="flex justify-between items-start mb-4">
                     <h2 className="text-2xl font-bold flex items-center gap-2">
-                      <Info /> How to Use This Interactive Visualization
+                      <Info /> <Sun /> 3D Fractal System: Coordination as Sun + Triple Identity
                     </h2>
                     <button 
                       onClick={() => setShowInstructions(false)}
@@ -408,34 +740,37 @@
                   <div className="grid md:grid-cols-3 gap-6 text-sm">
                     <div className="bg-white/10 rounded-lg p-4">
                       <h3 className="font-bold mb-2 flex items-center gap-2">
-                        <Hand /> 1. Interact with the Cube
+                        <Sun /> 1. Coordination as Sun
                       </h3>
                       <ul className="space-y-1">
-                        <li>• Click on the colored buttons below the cube to select different "Ways of Knowing"</li>
-                        <li>• Watch the cube face highlight in blue when selected</li>
-                        <li>• See detailed explanations update in real-time</li>
+                        <li>• Notice the ☀️ symbols and golden glow effects</li>
+                        <li>• Coordination is ALWAYS the central organizing force</li>
+                        <li>• All other competences orbit around it like planets 🌍</li>
+                        <li>• Auto-rotation shows the dynamic coordination system</li>
                       </ul>
                     </div>
                     
                     <div className="bg-white/10 rounded-lg p-4">
                       <h3 className="font-bold mb-2 flex items-center gap-2">
-                        <Mouse /> 2. Explore Fractal Levels
+                        <Move3D /> 2. Triple Identity Demonstration
                       </h3>
                       <ul className="space-y-1">
-                        <li>• Click the level buttons (L-2, L-1, L0, L1, L2) to change the architecture</li>
-                        <li>• Notice how the "Detailed Fractal Architecture" section updates</li>
-                        <li>• Hover over grids to see fractal relationships</li>
+                        <li>• Every competence has 3 identities: Coordinator, Supporter, System</li>
+                        <li>• Use the Triple Identity showcase below</li>
+                        <li>• Switch between Coordinator/Supporter/System views</li>
+                        <li>• See how the SAME competence changes roles</li>
                       </ul>
                     </div>
                     
                     <div className="bg-white/10 rounded-lg p-4">
                       <h3 className="font-bold mb-2 flex items-center gap-2">
-                        <Eye /> 3. Control the View
+                        <Hand /> 3. Interactive Controls
                       </h3>
                       <ul className="space-y-1">
-                        <li>• Use "Stop/Start Rotation" to control cube movement</li>
-                        <li>• Toggle "Show/Hide Details" for the detailed architecture view</li>
-                        <li>• Scroll down to see the complete fractal progression</li>
+                        <li>• Cube auto-rotates by default (showing dynamic system)</li>
+                        <li>• Drag to manually control rotation</li>
+                        <li>• Click level buttons to see fractal architecture</li>
+                        <li>• Hover over grids to explore sun/planet relationships</li>
                       </ul>
                     </div>
                   </div>
@@ -444,21 +779,21 @@
 
               {/* Header */}
               <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold mb-4 text-gray-800">
-                  3D Fractal Language Learning System
+                <h1 className="text-4xl font-bold mb-4 text-gray-800 flex items-center justify-center gap-2">
+                  <Sun /> 3D Fractal Language Learning System
                 </h1>
                 <p className="text-xl text-gray-600 mb-6">
-                  Interactive Visualization: Cultural Intelligence Through Six Ways of Knowing
+                  Revolutionary Visualization: Coordination as Sun ☀️ + Triple Identity Architecture
                 </p>
                 
                 {/* Global Controls */}
                 <div className="flex flex-wrap justify-center gap-4 mb-6">
                   <button
-                    onClick={() => setIsRotating(!isRotating)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    onClick={() => setIsAutoRotating(!isAutoRotating)}
+                    className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-600 transition-colors font-bold"
                   >
-                    <RotateCcw />
-                    {isRotating ? 'Stop Rotation' : 'Start Rotation'}
+                    <Sun />
+                    {isAutoRotating ? 'Stop Sun Rotation' : 'Start Sun Rotation'}
                   </button>
                   
                   <button
@@ -470,8 +805,16 @@
                   </button>
 
                   <button
-                    onClick={() => setShowInstructions(true)}
+                    onClick={() => setShowTripleIdentity(!showTripleIdentity)}
                     className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                  >
+                    <Orbit />
+                    {showTripleIdentity ? 'Hide Triple Identity' : 'Show Triple Identity'}
+                  </button>
+
+                  <button
+                    onClick={() => setShowInstructions(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                   >
                     <Info />
                     Show Instructions
@@ -479,51 +822,164 @@
                 </div>
               </div>
 
-              {/* 3D Rotating Cube Section */}
+              {/* Triple Identity Showcase */}
+              {showTripleIdentity && (
+                <div className="mb-8">
+                  {renderTripleIdentityShowcase()}
+                </div>
+              )}
+
+              {/* 3D Rotating Cube Section with Enhanced Sun Emphasis */}
               <div className="bg-white rounded-xl shadow-xl p-8 mb-8">
-                <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
-                  🎯 Step 1: Explore the 3D Cube - Cultural Intelligence Through Six Ways of Knowing
+                <h2 className="text-2xl font-bold text-center mb-6 text-gray-800 flex items-center justify-center gap-2">
+                  <Sun /> Step 1: Explore the Sun-Centered 3D Cube (Auto-Rotating)
                 </h2>
                 
                 <div className="flex flex-col xl:flex-row gap-8">
                   
-                  {/* 3D Cube */}
-                  <div className="flex-1 flex justify-center items-center" style={{ perspective: '1000px' }}>
-                    <div className="relative w-60 h-60" style={cubeStyle}>
+                  {/* 3D Cube and Controls */}
+                  <div className="flex-1">
+                    <div className="flex flex-col lg:flex-row items-center justify-center gap-8">
                       
-                      {/* All Six Faces */}
-                      {Object.entries(waysOfKnowing).map(([faceKey, face]) => {
-                        const transforms = {
-                          front: 'translateZ(120px)',
-                          back: 'translateZ(-120px) rotateY(180deg)',
-                          right: 'rotateY(90deg) translateZ(120px)',
-                          left: 'rotateY(-90deg) translateZ(120px)',
-                          top: 'rotateX(90deg) translateZ(120px)',
-                          bottom: 'rotateX(-90deg) translateZ(120px)'
-                        };
-
-                        return (
-                          <div 
-                            key={faceKey}
-                            style={{
-                              ...faceStyle(faceKey),
-                              transform: transforms[faceKey],
-                            }}
-                            className={`cursor-pointer transition-all ${
-                              activeFace === faceKey ? 'cube-face-highlight' : ''
-                            }`}
-                            onClick={() => setActiveFace(faceKey)}
+                      {/* Manual Rotation Controls */}
+                      <div className="text-center">
+                        <h4 className="font-bold mb-4 flex items-center gap-2 justify-center">
+                          <Move3D /> Manual Rotation Controls
+                        </h4>
+                        
+                        {/* Rotation Control Grid */}
+                        <div className="rotation-controls mb-4">
+                          <div></div>
+                          <button 
+                            className="rotation-btn"
+                            onClick={() => adjustRotation('x', -15)}
+                            title="Rotate Up"
                           >
-                            <div className="absolute top-2 left-2 text-sm font-bold flex items-center gap-1 z-10">
-                              {face.icon} {face.name}
-                            </div>
-                            {renderCubeGrid(levels[activeLevel].cubes === 81 ? 9 : levels[activeLevel].cubes === 9 ? 3 : 1, faceKey)}
+                            ▲
+                          </button>
+                          <div></div>
+                          
+                          <button 
+                            className="rotation-btn"
+                            onClick={() => adjustRotation('y', -15)}
+                            title="Rotate Left"
+                          >
+                            ◀
+                          </button>
+                          <div className="bg-yellow-300 rounded flex items-center justify-center text-xs font-bold sun-glow">
+                            ☀️
                           </div>
-                        );
-                      })}
+                          <button 
+                            className="rotation-btn"
+                            onClick={() => adjustRotation('y', 15)}
+                            title="Rotate Right"
+                          >
+                            ▶
+                          </button>
+                          
+                          <div></div>
+                          <button 
+                            className="rotation-btn"
+                            onClick={() => adjustRotation('x', 15)}
+                            title="Rotate Down"
+                          >
+                            ▼
+                          </button>
+                          <div></div>
+                        </div>
+                        
+                        {/* Preset View Buttons */}
+                        <div className="grid grid-cols-3 gap-2 text-xs">
+                          <button 
+                            onClick={() => rotateToPredefinedView('front')}
+                            className="px-2 py-1 bg-red-200 rounded hover:bg-red-300 transition-colors"
+                          >
+                            🧠 Memory
+                          </button>
+                          <button 
+                            onClick={() => rotateToPredefinedView('top')}
+                            className="px-2 py-1 bg-purple-200 rounded hover:bg-purple-300 transition-colors"
+                          >
+                            🎨 Imagination
+                          </button>
+                          <button 
+                            onClick={() => rotateToPredefinedView('right')}
+                            className="px-2 py-1 bg-orange-200 rounded hover:bg-orange-300 transition-colors"
+                          >
+                            👁️ Perception
+                          </button>
+                          <button 
+                            onClick={() => rotateToPredefinedView('left')}
+                            className="px-2 py-1 bg-blue-200 rounded hover:bg-blue-300 transition-colors"
+                          >
+                            🧮 Reason
+                          </button>
+                          <button 
+                            onClick={() => rotateToPredefinedView('bottom')}
+                            className="px-2 py-1 bg-green-200 rounded hover:bg-green-300 transition-colors"
+                          >
+                            ✨ Intuition
+                          </button>
+                          <button 
+                            onClick={() => rotateToPredefinedView('back')}
+                            className="px-2 py-1 bg-pink-200 rounded hover:bg-pink-300 transition-colors"
+                          >
+                            ❤️ Emotion
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* 3D Cube */}
+                      <div 
+                        className="cube-container"
+                        style={{ perspective: '1000px' }}
+                        onMouseDown={handleMouseDown}
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
+                      >
+                        <div className="relative w-60 h-60" style={cubeStyle} ref={cubeRef}>
+                          
+                          {/* All Six Faces */}
+                          {Object.entries(waysOfKnowing).map(([faceKey, face]) => {
+                            const transforms = {
+                              front: 'translateZ(120px)',
+                              back: 'translateZ(-120px) rotateY(180deg)',
+                              right: 'rotateY(90deg) translateZ(120px)',
+                              left: 'rotateY(-90deg) translateZ(120px)',
+                              top: 'rotateX(90deg) translateZ(120px)',
+                              bottom: 'rotateX(-90deg) translateZ(120px)'
+                            };
 
-                      {/* Central Core Indicator */}
-                      <div className="absolute top-1/2 left-1/2 w-3 h-3 bg-yellow-400 rounded-full border-2 border-yellow-600 transform -translate-x-1/2 -translate-y-1/2 z-20 shadow-lg">
+                            return (
+                              <div 
+                                key={faceKey}
+                                style={{
+                                  ...faceStyle(faceKey),
+                                  transform: transforms[faceKey],
+                                }}
+                                className={`cursor-pointer transition-all ${
+                                  activeFace === faceKey ? 'cube-face-highlight' : ''
+                                }`}
+                                onClick={() => setActiveFace(faceKey)}
+                              >
+                                <div className="absolute top-2 left-2 text-sm font-bold flex items-center gap-1 z-10">
+                                  {face.icon} {face.name}
+                                </div>
+                                {renderCubeGrid(levels[activeLevel].cubes === 81 ? 9 : levels[activeLevel].cubes === 9 ? 3 : 1, faceKey)}
+                              </div>
+                            );
+                          })}
+
+                          {/* Enhanced Central Core Indicator */}
+                          <div className="absolute top-1/2 left-1/2 w-4 h-4 bg-yellow-400 rounded-full border-2 border-yellow-600 transform -translate-x-1/2 -translate-y-1/2 z-20 shadow-lg sun-glow flex items-center justify-center text-xs">
+                            ☀️
+                          </div>
+                        </div>
+                        
+                        <p className="text-center text-sm text-gray-600 mt-4">
+                          ☀️ <strong>Auto-rotating Sun System</strong> | 🖱️ <strong>Drag to control</strong>
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -533,22 +989,23 @@
                     
                     {/* Current Level Info */}
                     <div className="bg-gray-50 rounded-lg p-4 border">
-                      <h3 className="text-lg font-bold mb-3" style={{ color: levels[activeLevel].cubeColor }}>
-                        Currently Viewing: {activeLevel} - {levels[activeLevel].description}
+                      <h3 className="text-lg font-bold mb-3 flex items-center gap-2" style={{ color: levels[activeLevel].cubeColor }}>
+                        <Sun /> Currently Viewing: {activeLevel} - {levels[activeLevel].description}
                       </h3>
                       <div className="space-y-2 text-sm">
                         <div><strong>Grid Size:</strong> {levels[activeLevel].size}</div>
-                        <div><strong>Structure:</strong> 
-                          {levels[activeLevel].cubes === 81 ? ' 8 planet grids + 1 central sun grid' :
-                           levels[activeLevel].cubes === 9 ? ' 8 supporting competences + Cultural Intelligence center' :
-                           ' Single Cultural Intelligence focus'}
+                        <div><strong>Rotation:</strong> X: {Math.round(rotation.x)}°, Y: {Math.round(rotation.y)}°</div>
+                        <div><strong>Sun-Planet Structure:</strong> 
+                          {levels[activeLevel].cubes === 81 ? ' ☀️ 1 central sun + 🌍 8 planet grids' :
+                           levels[activeLevel].cubes === 9 ? ' ☀️ 1 coordination sun + 🌍 8 supporting planets' :
+                           ' ☀️ Single coordination sun focus'}
                         </div>
                         <div><strong>Purpose:</strong>
-                          {activeLevel === 'L-2' && ' Conscious ecosystem coordination'}
-                          {activeLevel === 'L-1' && ' Strategic competence coordination'}
-                          {activeLevel === 'L0' && ' Concrete competence application'}
-                          {activeLevel === 'L1' && ' Micro-behavioral precision'}
-                          {activeLevel === 'L2' && ' Unconscious automatic integration'}
+                          {activeLevel === 'L-2' && ' Conscious ecosystem coordination through sun-planet dynamics'}
+                          {activeLevel === 'L-1' && ' Strategic competence coordination with central sun'}
+                          {activeLevel === 'L0' && ' Pure coordination sun - the central organizing force'}
+                          {activeLevel === 'L1' && ' Micro-behavioral precision around coordination sun'}
+                          {activeLevel === 'L2' && ' Unconscious automatic coordination sun integration'}
                         </div>
                       </div>
                     </div>
@@ -572,7 +1029,10 @@
                         {Object.entries(waysOfKnowing).map(([key, way]) => (
                           <button
                             key={key}
-                            onClick={() => setActiveFace(key)}
+                            onClick={() => {
+                              setActiveFace(key);
+                              rotateToPredefinedView(key);
+                            }}
                             className={`p-2 rounded border-2 transition-all text-left text-xs interactive-hint ${
                               activeFace === key ? 'border-blue-600 shadow-md scale-105 ring-2 ring-blue-200' : 'border-gray-300 hover:border-gray-400 hover:shadow-sm'
                             }`}
@@ -583,24 +1043,24 @@
                           </button>
                         ))}
                       </div>
-                      <p className="text-xs text-gray-600 mt-2">💡 Notice how the cube face highlights when you click!</p>
+                      <p className="text-xs text-gray-600 mt-2">☀️ Notice how coordination always remains the central sun!</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Fractal Progression Overview with Clear Call to Action */}
-              <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-xl shadow-xl p-8 mb-8">
-                <h2 className="text-2xl font-bold text-center mb-4 text-gray-800">
-                  🎯 Step 2: Explore Complete Fractal Progression
+              {/* Fractal Progression Overview with Sun Emphasis */}
+              <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl shadow-xl p-8 mb-8">
+                <h2 className="text-2xl font-bold text-center mb-4 text-gray-800 flex items-center justify-center gap-2">
+                  <Sun /> Step 2: Explore Sun-Centered Fractal Progression
                 </h2>
                 <div className="text-center mb-6">
-                  <div className="bg-yellow-100 border border-yellow-400 rounded-lg p-4 inline-block">
+                  <div className="bg-yellow-200 border border-yellow-500 rounded-lg p-4 inline-block">
                     <p className="text-lg font-semibold text-yellow-800 flex items-center gap-2">
-                      <Hand /> Click any level below to see its detailed architecture!
+                      <Hand /> <Sun /> Click any level to see its sun-planet architecture!
                     </p>
                     <p className="text-sm text-yellow-700 mt-1">
-                      The "Detailed Fractal Architecture" section will update automatically
+                      Watch how coordination ☀️ remains the central organizing force at every level
                     </p>
                   </div>
                 </div>
@@ -612,16 +1072,18 @@
                         onClick={() => setActiveLevel(level)}
                         className={`px-6 py-4 rounded-lg border-2 transition-all interactive-hint ${
                           activeLevel === level 
-                            ? 'border-gray-600 shadow-lg scale-105 ' + info.color + ' ring-4 ring-blue-200'
+                            ? 'border-yellow-600 shadow-lg scale-105 ' + info.color + ' ring-4 ring-yellow-300 sun-glow'
                             : 'border-gray-300 bg-white hover:shadow-md hover:scale-102'
                         }`}
                       >
-                        <div className="text-xl">{level}</div>
+                        <div className="text-xl flex items-center gap-1">
+                          {level} {activeLevel === level && <Sun />}
+                        </div>
                         <div className="text-sm">{info.size}</div>
                         <div className="text-xs">{info.description}</div>
                         {activeLevel === level && (
-                          <div className="text-xs text-blue-600 mt-1 font-bold">
-                            ← Currently Active
+                          <div className="text-xs text-yellow-600 mt-1 font-bold">
+                            ← Active Sun System
                           </div>
                         )}
                       </button>
@@ -633,23 +1095,25 @@
                 </div>
 
                 <div className="text-center space-y-2">
-                  <p className="text-lg font-semibold">Perfect Mathematical Symmetry</p>
+                  <p className="text-lg font-semibold flex items-center justify-center gap-2">
+                    <Sun /> Perfect Mathematical Sun-Planet Symmetry
+                  </p>
                   <p className="text-gray-700">L-2 and L2 both use 9×9 architecture with identical fractal structure</p>
                   <p className="text-gray-600 text-sm">L-2: Conscious ecosystem coordination | L2: Unconscious fluency integration</p>
-                  <p className="text-gray-600 text-sm">Each level maintains sun/planet relationship through six ways of knowing</p>
+                  <p className="text-gray-600 text-sm">☀️ Coordination as sun at every level + 🌍 competences as orbiting planets</p>
                 </div>
               </div>
 
-              {/* Detailed Architecture View with Clear Indication */}
+              {/* Detailed Architecture View with Sun Emphasis */}
               {showDetailedView && (
-                <div className="bg-white rounded-xl shadow-xl p-8 mb-8 border-4 border-blue-200">
+                <div className="bg-white rounded-xl shadow-xl p-8 mb-8 border-4 border-yellow-200">
                   <div className="flex items-center justify-center mb-6">
-                    <div className="bg-blue-100 border border-blue-300 rounded-lg p-4">
-                      <h2 className="text-2xl font-bold text-center text-blue-800 flex items-center gap-2">
-                        🔍 Step 3: Detailed Fractal Architecture - {activeLevel} Level
+                    <div className="bg-yellow-100 border border-yellow-400 rounded-lg p-4">
+                      <h2 className="text-2xl font-bold text-center text-yellow-800 flex items-center gap-2">
+                        <Sun /> Step 3: Detailed Sun-Planet Architecture - {activeLevel} Level
                       </h2>
-                      <p className="text-center text-blue-600 text-sm mt-2">
-                        This section updates when you click different levels above! ↑
+                      <p className="text-center text-yellow-600 text-sm mt-2">
+                        This section updates when you click different levels above! ↑ Notice the sun ☀️ emphasis!
                       </p>
                     </div>
                   </div>
@@ -658,8 +1122,8 @@
                     
                     {/* Detailed Grid Visualization */}
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold mb-4 text-center">
-                        {activeLevel}: {levels[activeLevel].description} ({levels[activeLevel].size})
+                      <h3 className="text-xl font-bold mb-4 text-center flex items-center justify-center gap-2">
+                        <Sun /> {activeLevel}: {levels[activeLevel].description} ({levels[activeLevel].size})
                       </h3>
                       <div className="flex justify-center">
                         {renderDetailedCube(activeLevel)}
@@ -670,36 +1134,43 @@
                     {/* Architecture Details */}
                     <div className="flex-1 space-y-4">
                       <div className="bg-gray-50 rounded-lg p-4 border">
-                        <h4 className="text-lg font-bold mb-3">Architecture Details:</h4>
+                        <h4 className="text-lg font-bold mb-3 flex items-center gap-2">
+                          <Sun /> Sun-Planet Architecture Details:
+                        </h4>
                         <div className="space-y-2 text-sm">
                           <div><strong>Grid Structure:</strong> {levels[activeLevel].size}</div>
-                          <div><strong>Fractal Pattern:</strong>
-                            {(activeLevel === 'L-2' || activeLevel === 'L2') ? ' 9 grids (1 sun + 8 planets), each containing 3×3 internal structure' : 
-                             (activeLevel === 'L-1' || activeLevel === 'L1') ? ' 1 grid with 3×3 structure (1 sun + 8 planets)' : 
-                             ' 1 single competence focus'}
+                          <div><strong>Sun-Planet Pattern:</strong>
+                            {(activeLevel === 'L-2' || activeLevel === 'L2') ? ' ☀️ 1 central coordination sun + 🌍 8 surrounding planet grids' : 
+                             (activeLevel === 'L-1' || activeLevel === 'L1') ? ' ☀️ 1 coordination sun + 🌍 8 orbiting competence planets' : 
+                             ' ☀️ Pure coordination sun - the central organizing force'}
                           </div>
                           <div><strong>Total Elements:</strong> {levels[activeLevel].cubes} × 6 faces = {levels[activeLevel].cubes * 6} total learning elements</div>
-                          <div><strong>Coordination Focus:</strong> Cultural Intelligence as central organizing principle</div>
+                          <div><strong>Coordination Focus:</strong> ☀️ Cultural Intelligence sun as central organizing principle</div>
                         </div>
                       </div>
 
                       <div className="bg-gray-50 rounded-lg p-4 border">
-                        <h4 className="text-lg font-bold mb-3">Assessment Integration:</h4>
+                        <h4 className="text-lg font-bold mb-3 flex items-center gap-2">
+                          <Orbit /> Triple Identity Integration:
+                        </h4>
                         <div className="space-y-2 text-sm">
-                          <div><strong>Universal Observables:</strong> Measured across all 6 ways of knowing</div>
-                          <div><strong>Context Rubrics:</strong> Adapted for specific cultural-linguistic contexts</div>
-                          <div><strong>Coordination Evidence:</strong> Multi-competence integration patterns</div>
-                          <div><strong>HSK Alignment:</strong> Progression toward advanced competence levels</div>
+                          <div><strong>As Coordinator (Sun ☀️):</strong> When you focus on this level, it becomes the organizing center</div>
+                          <div><strong>As Supporter (Planet 🌍):</strong> When serving larger goals, it orbits around bigger coordination suns</div>
+                          <div><strong>As System (Internal):</strong> When examined closely, it expands into its own internal complexity</div>
+                          <div><strong>Dynamic Switching:</strong> Same competence, different roles based on focus and context</div>
                         </div>
                       </div>
 
                       <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-300">
-                        <h4 className="text-lg font-bold mb-3 text-yellow-800">🔄 Try This:</h4>
+                        <h4 className="text-lg font-bold mb-3 text-yellow-800 flex items-center gap-2">
+                          <Sun /> Experience the Sun System:
+                        </h4>
                         <div className="space-y-2 text-sm text-yellow-700">
-                          <div>1. Click different levels above to see how this architecture changes</div>
-                          <div>2. Notice the fractal sun/planet relationships at each scale</div>
-                          <div>3. Hover over grids (L-2 and L2) to explore fractal details</div>
-                          <div>4. Compare the symmetry between L-2 and L2 levels</div>
+                          <div>1. <strong>Watch the auto-rotation</strong> - See the dynamic coordination in action</div>
+                          <div>2. <strong>Notice the sun glow effects</strong> - Visual emphasis on coordination centers</div>
+                          <div>3. <strong>Click different levels</strong> - Sun-planet pattern repeats at every scale</div>
+                          <div>4. <strong>Use Triple Identity showcase</strong> - See how competences change roles</div>
+                          <div>5. <strong>Hover over grids</strong> - Explore sun-planet relationships in detail</div>
                         </div>
                       </div>
                     </div>
@@ -707,43 +1178,49 @@
                 </div>
               )}
 
-              {/* Sharing and Usage Information */}
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 rounded-r-xl p-6">
+              {/* Enhanced Sharing and Usage Information */}
+              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 rounded-r-xl p-6">
                 <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <Share2 />
-                  Enhanced 3D Fractal Language Learning System
+                  <Share2 /> <Sun />
+                  Revolutionary 3D Language Learning: Coordination as Sun + Triple Identity
                 </h3>
                 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <h4 className="font-bold mb-2">Interactive Features You Just Explored:</h4>
+                    <h4 className="font-bold mb-2 flex items-center gap-2">
+                      <Sun /> Sun-Centered Design Features:
+                    </h4>
                     <ul className="text-sm space-y-1 text-gray-700">
-                      <li>• 3D rotating cube with six clickable ways of knowing</li>
-                      <li>• Visual feedback when selecting cube faces</li>
-                      <li>• Dynamic level navigation (L-2 through L2)</li>
-                      <li>• Fractal grid visualization with hover effects</li>
-                      <li>• Real-time content updates</li>
-                      <li>• Cultural Intelligence coordination tracking</li>
+                      <li>• <strong>Auto-rotating cube</strong> - Shows dynamic coordination system</li>
+                      <li>• <strong>Sun glow animations</strong> - Visual emphasis on coordination centers</li>
+                      <li>• <strong>☀️ and 🌍 symbols</strong> - Clear sun-planet relationship markers</li>
+                      <li>• <strong>Triple Identity showcase</strong> - Interactive role-switching demonstration</li>
+                      <li>• <strong>Fractal sun patterns</strong> - Coordination as sun at every level</li>
+                      <li>• <strong>Enhanced visual feedback</strong> - Golden highlights for coordination focus</li>
                     </ul>
                   </div>
                   
                   <div>
-                    <h4 className="font-bold mb-2">Educational Applications:</h4>
+                    <h4 className="font-bold mb-2 flex items-center gap-2">
+                      <Orbit /> Revolutionary Learning Applications:
+                    </h4>
                     <ul className="text-sm space-y-1 text-gray-700">
-                      <li>• Advanced Chinese language learning (HSK 7-9)</li>
-                      <li>• Teacher training and curriculum design</li>
-                      <li>• Assessment framework demonstration</li>
-                      <li>• Research in holistic language acquisition</li>
-                      <li>• AI-assisted learning systems</li>
+                      <li>• <strong>HSK 7-9 mastery</strong> - Understanding coordination as the core competence</li>
+                      <li>• <strong>Teacher training revolution</strong> - Moving from skill accumulation to coordination</li>
+                      <li>• <strong>Assessment paradigm shift</strong> - Evaluating coordination evidence</li>
+                      <li>• <strong>AI language learning</strong> - Implementing sun-planet architecture</li>
+                      <li>• <strong>Curriculum design</strong> - Coordination-centered learning progressions</li>
                     </ul>
                   </div>
                 </div>
 
-                <div className="mt-4 p-4 bg-white rounded-lg border">
+                <div className="mt-4 p-4 bg-white rounded-lg border border-yellow-300">
                   <p className="text-sm text-gray-700">
-                    <strong>Mathematical Foundation:</strong> This interactive visualization demonstrates how Cultural Intelligence coordinates 
-                    through six ways of knowing (memory, emotion, perception, reason, imagination, intuition) across five levels 
-                    of abstraction, maintaining fractal sun/planet relationships at every scale for comprehensive language mastery.
+                    <strong>🌟 Revolutionary Breakthrough:</strong> This visualization demonstrates the fundamental shift from 
+                    "language skills accumulation" to "coordination system mastery." By visualizing coordination as the central sun ☀️ 
+                    with competences as orbiting planets 🌍, and showing how every competence has triple identity 
+                    (coordinator/supporter/system), learners can finally understand the true architecture of advanced language competence. 
+                    This is the mathematical foundation for HSK 7-9 and beyond.
                   </p>
                 </div>
               </div>
@@ -752,7 +1229,7 @@
         };
 
         // Render the component
-        ReactDOM.render(<UserFriendlyCubicLanguageLearning />, document.getElementById('root'));
+        ReactDOM.render(<TripleIdentityCubicLanguageLearning />, document.getElementById('root'));
     </script>
 </body>
 </html>
