@@ -7,18 +7,377 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; }
+        body { 
+            margin: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; 
+        }
+        .lucide {
+            width: 1em;
+            height: 1em;
+            display: inline-block;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
     <div id="root"></div>
     
     <script type="text/babel">
-        // Paste your complete React component code here
-        // (the CompleteCubicLanguageLearning component from earlier)
+        const { useState, useEffect } = React;
+
+        // Simple icon components to replace lucide-react
+        const ChevronDown = () => <span className="lucide">▼</span>;
+        const RotateCcw = () => <span className="lucide">↻</span>;
+        const Share2 = () => <span className="lucide">↗</span>;
+        const Eye = () => <span className="lucide">👁</span>;
+
+        const CompleteCubicLanguageLearning = () => {
+          const [rotation, setRotation] = useState({ x: -15, y: 25 });
+          const [activeLevel, setActiveLevel] = useState('L0');
+          const [activeFace, setActiveFace] = useState('front');
+          const [isRotating, setIsRotating] = useState(true);
+          const [highlightedGrid, setHighlightedGrid] = useState(null);
+          const [showDetailedView, setShowDetailedView] = useState(true);
+
+          useEffect(() => {
+            if (isRotating) {
+              const interval = setInterval(() => {
+                setRotation(prev => ({ x: prev.x, y: (prev.y + 1) % 360 }));
+              }, 100);
+              return () => clearInterval(interval);
+            }
+          }, [isRotating]);
+
+          const levels = {
+            'L-2': { size: '9×9', description: 'Macro Learning Ecosystem', color: 'bg-purple-100', cubes: 81, cubeColor: '#e879f9' },
+            'L-1': { size: '3×3', description: 'Strategic Coordination', color: 'bg-blue-100', cubes: 9, cubeColor: '#60a5fa' },
+            'L0': { size: '1×1', description: 'Concrete Competence', color: 'bg-green-100', cubes: 1, cubeColor: '#34d399' },
+            'L1': { size: '3×3', description: 'Micro-Behaviors', color: 'bg-yellow-100', cubes: 9, cubeColor: '#fbbf24' },
+            'L2': { size: '9×9', description: 'Unconscious Integration', color: 'bg-red-100', cubes: 81, cubeColor: '#f87171' }
+          };
+
+          const waysOfKnowing = {
+            front: { name: '记忆 Memory', color: 'bg-red-200', cubeColor: '#fecaca', icon: '🧠' },
+            back: { name: '情感 Emotion', color: 'bg-pink-200', cubeColor: '#fbcfe8', icon: '❤️' },
+            right: { name: '感知 Perception', color: 'bg-orange-200', cubeColor: '#fed7aa', icon: '👁️' },
+            left: { name: '理性 Reason', color: 'bg-blue-200', cubeColor: '#bfdbfe', icon: '🧮' },
+            top: { name: '想象 Imagination', color: 'bg-purple-200', cubeColor: '#ddd6fe', icon: '🎨' },
+            bottom: { name: '直觉 Intuition', color: 'bg-green-200', cubeColor: '#bbf7d0', icon: '✨' }
+          };
+
+          const competences = [
+            'Listening', 'Vocabulary', 'Grammar',
+            'Speaking', 'Cultural Intelligence', 'Reading',
+            'Writing', 'Affective', 'Social'
+          ];
+
+          const ecosystemDomains = [
+            'Advanced Listening', 'Professional Speaking', 'Academic Reading',
+            'Creative Writing', 'Cultural Intelligence', 'Digital Literacy',
+            'Business Chinese', 'Educational Chinese', 'Heritage Language'
+          ];
+
+          const neuralPatterns = [
+            'Phonological', 'Morphological', 'Syntactic',
+            'Semantic', 'Cultural Intelligence', 'Pragmatic',
+            'Discourse', 'Gestural', 'Emotional'
+          ];
+
+          const renderCubeGrid = (size, faceKey) => {
+            const isCenter = (i) => i === Math.floor((size * size) / 2);
+            
+            if (size === 9) {
+              return (
+                <div className="grid grid-cols-3 gap-px h-full w-full p-1">
+                  {Array.from({ length: 9 }, (_, gridIndex) => (
+                    <div 
+                      key={gridIndex}
+                      className={`border rounded-sm ${gridIndex === 4 ? 'border-yellow-400 bg-yellow-200' : 'border-gray-400 bg-white'}`}
+                    >
+                      <div className="grid grid-cols-3 gap-px h-full p-px">
+                        {Array.from({ length: 9 }, (_, cellIndex) => (
+                          <div
+                            key={cellIndex}
+                            className={`rounded-sm flex items-center justify-center text-xs
+                              ${cellIndex === 4 
+                                ? (gridIndex === 4 ? 'bg-yellow-300' : 'bg-blue-200')
+                                : 'bg-gray-100'
+                              }`}
+                          >
+                            {cellIndex === 4 && (
+                              <span className="text-[6px] font-bold text-center">
+                                {gridIndex === 4 ? '文化' : '智能'}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            } else if (size === 3) {
+              return (
+                <div className="grid grid-cols-3 gap-1 h-full w-full p-2">
+                  {Array.from({ length: 9 }, (_, i) => (
+                    <div
+                      key={i}
+                      className={`border rounded flex items-center justify-center text-xs font-bold
+                        ${isCenter(i) ? 'bg-yellow-300 border-yellow-500' : 'bg-white border-gray-300'}
+                      `}
+                    >
+                      {isCenter(i) ? '文化智能' : i + 1}
+                    </div>
+                  ))}
+                </div>
+              );
+            } else {
+              return (
+                <div className="h-full w-full flex items-center justify-center p-4">
+                  <div className="w-full h-full bg-yellow-300 border-4 border-yellow-500 rounded-lg flex items-center justify-center font-bold text-lg">
+                    文化智能
+                  </div>
+                </div>
+              );
+            }
+          };
+
+          const cubeStyle = {
+            transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
+            transformStyle: 'preserve-3d',
+          };
+
+          const faceStyle = (face, distance = 120) => ({
+            position: 'absolute',
+            width: '240px',
+            height: '240px',
+            border: '3px solid #374151',
+            backgroundColor: waysOfKnowing[face].cubeColor,
+            opacity: activeFace === face ? 1 : 0.8,
+          });
+
+          return (
+            <div className="max-w-7xl mx-auto p-6 bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
+              
+              {/* Header */}
+              <div className="text-center mb-8">
+                <h1 className="text-4xl font-bold mb-4 text-gray-800">
+                  3D Fractal Language Learning System
+                </h1>
+                <p className="text-xl text-gray-600 mb-6">
+                  Complete Interactive Visualization: Fractal Gridding + LoA + Ways of Knowing
+                </p>
+                
+                {/* Global Controls */}
+                <div className="flex flex-wrap justify-center gap-4 mb-6">
+                  <button
+                    onClick={() => setIsRotating(!isRotating)}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    <RotateCcw />
+                    {isRotating ? 'Stop Rotation' : 'Start Rotation'}
+                  </button>
+                  
+                  <select
+                    value={activeLevel}
+                    onChange={(e) => setActiveLevel(e.target.value)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg bg-white font-semibold"
+                  >
+                    {Object.entries(levels).map(([level, info]) => (
+                      <option key={level} value={level}>
+                        {level}: {info.description} ({info.size})
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    onClick={() => setShowDetailedView(!showDetailedView)}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                  >
+                    <Eye />
+                    {showDetailedView ? 'Hide Details' : 'Show Details'}
+                  </button>
+                </div>
+              </div>
+
+              {/* 3D Rotating Cube Section */}
+              <div className="bg-white rounded-xl shadow-xl p-8 mb-8">
+                <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
+                  Interactive 3D Cube: Cultural Intelligence Through Six Ways of Knowing
+                </h2>
+                
+                <div className="flex flex-col xl:flex-row gap-8">
+                  
+                  {/* 3D Cube */}
+                  <div className="flex-1 flex justify-center items-center" style={{ perspective: '1000px' }}>
+                    <div className="relative w-60 h-60" style={cubeStyle}>
+                      
+                      {/* All Six Faces */}
+                      {Object.entries(waysOfKnowing).map(([faceKey, face]) => {
+                        const transforms = {
+                          front: 'translateZ(120px)',
+                          back: 'translateZ(-120px) rotateY(180deg)',
+                          right: 'rotateY(90deg) translateZ(120px)',
+                          left: 'rotateY(-90deg) translateZ(120px)',
+                          top: 'rotateX(90deg) translateZ(120px)',
+                          bottom: 'rotateX(-90deg) translateZ(120px)'
+                        };
+
+                        return (
+                          <div 
+                            key={faceKey}
+                            style={{
+                              ...faceStyle(faceKey),
+                              transform: transforms[faceKey],
+                            }}
+                            className="cursor-pointer transition-opacity"
+                            onClick={() => setActiveFace(faceKey)}
+                          >
+                            <div className="absolute top-2 left-2 text-sm font-bold flex items-center gap-1 z-10">
+                              {face.icon} {face.name}
+                            </div>
+                            {renderCubeGrid(levels[activeLevel].cubes === 81 ? 9 : levels[activeLevel].cubes === 9 ? 3 : 1, faceKey)}
+                          </div>
+                        );
+                      })}
+
+                      {/* Central Core Indicator */}
+                      <div className="absolute top-1/2 left-1/2 w-3 h-3 bg-yellow-400 rounded-full border-2 border-yellow-600 transform -translate-x-1/2 -translate-y-1/2 z-20 shadow-lg">
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cube Info Panel */}
+                  <div className="flex-1 space-y-4">
+                    
+                    {/* Current Level Info */}
+                    <div className="bg-gray-50 rounded-lg p-4 border">
+                      <h3 className="text-lg font-bold mb-3" style={{ color: levels[activeLevel].cubeColor }}>
+                        {activeLevel}: {levels[activeLevel].description}
+                      </h3>
+                      <div className="space-y-2 text-sm">
+                        <div><strong>Grid Size:</strong> {levels[activeLevel].size}</div>
+                        <div><strong>Structure:</strong> 
+                          {levels[activeLevel].cubes === 81 ? ' 8 planet grids + 1 central sun grid' :
+                           levels[activeLevel].cubes === 9 ? ' 8 supporting competences + Cultural Intelligence center' :
+                           ' Single Cultural Intelligence focus'}
+                        </div>
+                        <div><strong>Purpose:</strong>
+                          {activeLevel === 'L-2' && ' Conscious ecosystem coordination'}
+                          {activeLevel === 'L-1' && ' Strategic competence coordination'}
+                          {activeLevel === 'L0' && ' Concrete competence application'}
+                          {activeLevel === 'L1' && ' Micro-behavioral precision'}
+                          {activeLevel === 'L2' && ' Unconscious automatic integration'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Ways of Knowing Selection */}
+                    <div className="bg-gray-50 rounded-lg p-4 border">
+                      <h4 className="font-bold mb-3">Select Way of Knowing:</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {Object.entries(waysOfKnowing).map(([key, way]) => (
+                          <button
+                            key={key}
+                            onClick={() => setActiveFace(key)}
+                            className={`p-2 rounded border-2 transition-all text-left text-xs ${
+                              activeFace === key ? 'border-gray-600 shadow-md scale-105' : 'border-gray-300 hover:border-gray-400'
+                            }`}
+                            style={{ backgroundColor: way.cubeColor }}
+                          >
+                            <div className="text-sm">{way.icon}</div>
+                            <div className="font-bold text-xs">{way.name}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Fractal Progression Overview */}
+              <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-xl shadow-xl p-8 mb-8">
+                <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
+                  Complete Fractal Progression
+                </h2>
+                
+                <div className="flex flex-wrap justify-center items-center gap-4 text-lg font-bold mb-6">
+                  {Object.entries(levels).map(([level, info], index) => (
+                    <React.Fragment key={level}>
+                      <button
+                        onClick={() => setActiveLevel(level)}
+                        className={`px-6 py-4 rounded-lg border-2 transition-all ${
+                          activeLevel === level 
+                            ? 'border-gray-600 shadow-lg scale-105 ' + info.color
+                            : 'border-gray-300 bg-white hover:shadow-md'
+                        }`}
+                      >
+                        <div className="text-xl">{level}</div>
+                        <div className="text-sm">{info.size}</div>
+                        <div className="text-xs">{info.description}</div>
+                      </button>
+                      {index < Object.keys(levels).length - 1 && (
+                        <ChevronDown />
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+
+                <div className="text-center space-y-2">
+                  <p className="text-lg font-semibold">Perfect Mathematical Symmetry</p>
+                  <p className="text-gray-700">L-2 and L2 both use 9×9 architecture with identical fractal structure</p>
+                  <p className="text-gray-600 text-sm">L-2: Conscious ecosystem coordination | L2: Unconscious fluency integration</p>
+                  <p className="text-gray-600 text-sm">Each level maintains sun/planet relationship through six ways of knowing</p>
+                </div>
+              </div>
+
+              {/* Sharing and Usage Information */}
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 rounded-r-xl p-6">
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  <Share2 />
+                  Complete 3D Fractal Language Learning System
+                </h3>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-bold mb-2">Interactive Features:</h4>
+                    <ul className="text-sm space-y-1 text-gray-700">
+                      <li>• 3D rotating cube with six ways of knowing</li>
+                      <li>• Level navigation (L-2 through L2)</li>
+                      <li>• Fractal grid visualization with sun/planet structure</li>
+                      <li>• Real-time assessment integration display</li>
+                      <li>• Cultural Intelligence coordination tracking</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-bold mb-2">Educational Applications:</h4>
+                    <ul className="text-sm space-y-1 text-gray-700">
+                      <li>• Advanced Chinese language learning (HSK 7-9)</li>
+                      <li>• Teacher training and curriculum design</li>
+                      <li>• Assessment framework demonstration</li>
+                      <li>• Research in holistic language acquisition</li>
+                      <li>• AI-assisted language learning systems</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="mt-4 p-4 bg-white rounded-lg border">
+                  <p className="text-sm text-gray-700">
+                    <strong>Mathematical Foundation:</strong> This visualization demonstrates how Cultural Intelligence coordinates 
+                    through six ways of knowing (memory, emotion, perception, reason, imagination, intuition) across five levels 
+                    of abstraction, maintaining fractal sun/planet relationships at every scale for comprehensive language mastery.
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        // Render the component
+        ReactDOM.render(<CompleteCubicLanguageLearning />, document.getElementById('root'));
     </script>
 </body>
 </html>
